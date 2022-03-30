@@ -1,142 +1,126 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'other_page.dart';
+import 'package:untitled3/creature.dart';
 
-const app = MyApp();
+import 'battle.dart';
 
 void main() {
-  runApp(const MaterialApp(home: app));
+  initCreatures();
+  runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  @override
-  State<StatefulWidget> createState() => _FavoriteWidgetState();
-}
-
-bool _pressedSuicide = false;
-
-class _FavoriteWidgetState extends State<MyApp> {
-  final ButtonStyle raisedButtonStyle = ElevatedButton.styleFrom(
-    onPrimary: Colors.black87,
-    primary: Colors.grey[300],
-    minimumSize: Size(88, 36),
-    padding: EdgeInsets.symmetric(horizontal: 16),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(2)),
-    ),
-  );
-
-  Text jackText = const Text("This is Jack. He's mad.");
-
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    if (!_pressedSuicide) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text("Imaggeee"),
-        ),
-        body: Wrap(children: <Widget>[
-          Image.asset(
-              'assets/images/movie-300-helmet-shield-wallpaper-thumb.jpg'),
-          jackText,
-          SizedBox(
-            width: 200,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                  primary: Colors.blue, backgroundColor: Colors.amberAccent),
-              onPressed: () {
-                setState(() {
-                  _pressedSuicide = !_pressedSuicide;
-                });
-              },
-              child: const Text('Fight him.'),
-            ),
-          ),
-          ElevatedButton(
-            style: raisedButtonStyle,
-            onPressed: () {
-              Navigator.push(context, _createRoute(() {
-                setState(() {});
-              }));
-            },
-            child: const Text('Go around him because you\'re weak'),
-          )
-        ]),
-        bottomNavigationBar: (!_pressedSuicide
-            ? const BottomAppBar(
-                child: Text(
-                    "Cam on ingerland! Score some faking goals!! ENG 7-1 BRA"))
-            : const Text("asd")),
-      );
-    } else {
-      return DiedPage();
-    }
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const MyHomePage(title: 'Jack Hastougo'),
+    );
   }
 }
 
-Route _createRoute(Function() updateFunc) {
-  return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) =>
-        MapScene(updateFunc: updateFunc),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return child;
-    },
-  );
+class MyHomePage extends StatefulWidget {
+  final String title;
+
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class MapScene extends StatelessWidget {
-  final Function() updateFunc;
+class _MyHomePageState extends State<MyHomePage> {
+  bool lightning = false;
+  bool inited =
+      false; // TODO find a way to run this once at initialization without checking every build
 
-  const MapScene({Key? key, required this.updateFunc}) : super(key: key);
+  void strikeLighting() {
+    setState(() {
+      lightning = !lightning;
+      int time = 1000;
+      if (!lightning) {
+        var ran = Random();
+        time += ran.nextInt(7000);
+      } else {
+        time = (time.toDouble() * .5).round();
+      }
+      Timer(Duration(milliseconds: time), strikeLighting);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: const Text('Second Route'),
-        ),
-        body: Container(
-          decoration: const BoxDecoration(
+    if (!inited) {
+      inited = true;
+      strikeLighting();
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.fastOutSlowIn,
+      decoration: !lightning
+          ? const BoxDecoration(
               image: DecorationImage(
-                  image: AssetImage(
-                      'assets/images/1a4314_47bd8f4a28014766a9a4a9c2ec051eac~mv2.jpg'),
-                  fit: BoxFit.cover)),
-          child: ListView(children: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Face Jack again!'),
+                  image: AssetImage('assets/images/main_page.jpg'),
+                  fit: BoxFit.cover))
+          : const BoxDecoration(color: Color(0xFFDDDDFF)),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Spacer(
+              flex: 8,
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _pressedSuicide = true;
-                updateFunc();
-              },
-              child: const Text('Drink from that weird brown bottle'),
+            FractionallySizedBox(
+              widthFactor: 1.0,
+              child: Container(
+                color: Colors.black54,
+                child: Text(
+                  super.widget.title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFDDC9B4),
+                    fontSize: 42,
+                    decoration: TextDecoration.none,
+                    shadows: [
+                      Shadow(color: Colors.black, offset: Offset(5, 5))
+                    ],
+                  ),
+                ),
+              ),
             ),
-            ElevatedButton(
+            const Spacer(),
+            OutlinedButton(
               onPressed: () {
-                var ran = Random();
                 Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => PracticePage(
-                            success: ran.nextBool(),
-                            context: context,
-                          )),
-                );
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Battle(),
+                    ));
               },
-              child: const Text('Practice your skills brah'),
+              child: const Text('Start a new game',
+                  style: TextStyle(color: Color(0xFFDDC9B4), fontSize: 24)),
+              style: ElevatedButton.styleFrom(
+                  primary: const Color(0xFF0B3954),
+                  minimumSize: const Size(300, 100),
+                  side: const BorderSide(
+                    width: 5.0,
+                    color: Color(0xFF7A6C5D),
+                  )),
             ),
-          ]),
-          constraints: const BoxConstraints.expand(),
-          // width: double.infinity,
-          // height: 500,
-        ));
+            const Spacer(
+              flex: 8,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
