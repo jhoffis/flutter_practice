@@ -5,25 +5,13 @@ import 'package:image_sequence_animator/image_sequence_animator.dart';
 import 'creature.dart';
 
 class Battle extends StatefulWidget {
-  Battle({Key? key}) : super(key: key) {
-    var animTest = const ImageSequenceAnimator(
-      "assets/images", //folderName
-      "enemy_spider", //fileName
-      0, //suffixStart
-      5, //suffixCount
-      "png", //fileFormat
-      2, //frameCount
-    );
-
-    var looping = animTest.isLooping;
-  }
+  const Battle({Key? key}) : super(key: key);
 
   @override
   State<Battle> createState() => _BattleState();
 }
 
 class _BattleState extends State<Battle> {
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -42,10 +30,16 @@ class _BattleState extends State<Battle> {
                 shadows: [Shadow(color: Colors.black, offset: Offset(5, 5))],
               ),
             ),
-
-            testMonster.getFrame(setState)
-
-            ,
+            const ImageSequenceAnimator(
+              "assets/images", //folderName
+              "enemy_spider", //fileName
+              0, //suffixStart
+              1, //suffixCount
+              "png", //fileFormat
+              2, //frameCount
+              fps: 1,
+              isLooping: true,
+            ),
             OutlinedButton(
               onPressed: () {
                 Navigator.push(
