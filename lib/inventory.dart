@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:untitled3/creature.dart';
 
+import 'item.dart';
+
 class Inventory extends StatefulWidget {
   final Creature creature;
 
@@ -20,6 +22,7 @@ class _InventoryState extends State<Inventory> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your inventory'),
+
       ),
       body: Column(children: [
         Flexible(

@@ -2,48 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-abstract class Item {
-  String getName();
-
-  Widget showStats();
-}
-
-class Weapon extends Item {
-  int strength = 0,
-      bonusStrength = 0,
-      speed = 0;
-  double chanceHit = 1;
-
-  Weapon() {
-    strength = 2;
-  }
-
-  @override
-  String getName() {
-    return "Weapon";
-  }
-
-  @override
-  Widget showStats() {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(
-        "Strength: $strength\n"
-            "Chance to hit: $chanceHit\n"
-            "Speed: $speed",
-        textAlign: TextAlign.left,
-      ),
-      OutlinedButton(
-        onPressed: () {},
-        child: const Text('Equip',
-            style: TextStyle(color: Color(0xFF292929), fontSize: 16)),
-        style: ElevatedButton.styleFrom(
-          primary: const Color(0xFF34eb77),
-          padding: const EdgeInsets.all(8),
-        ),
-      ),
-    ]);
-  }
-}
+import 'item.dart';
 
 class Creature {
   final List<Item> inventory;

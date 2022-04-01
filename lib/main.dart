@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:untitled3/creature.dart';
 
 import 'battle.dart';
@@ -36,12 +37,23 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+var audioPlayer_music = AudioPlayer();
+final player_music = AudioCache(fixedPlayer: audioPlayer_music);
+var audioPlayer_lightning = AudioPlayer();
+final player_lightning = AudioCache(fixedPlayer: audioPlayer_lightning);
+var audioPlayer_rain = AudioPlayer();
+final player_rain = AudioCache(fixedPlayer: audioPlayer_rain);
+
+
 class _MyHomePageState extends State<MyHomePage> {
   bool lightning = false;
-  bool inited =
-      false; // TODO find a way to run this once at initialization without checking every build
-
+  bool inited = false; // TODO find a way to run this once at initialization without checking every build
+  bool end = false;
   void strikeLighting() {
+    if (end) {
+      return;
+    }
+
     setState(() {
       lightning = !lightning;
       int time = 1000;
@@ -49,6 +61,8 @@ class _MyHomePageState extends State<MyHomePage> {
         var ran = Random();
         time += ran.nextInt(7000);
       } else {
+        audioPlayer_lightning.stop();
+        player_lightning.play("sounds/lightning.wav");
         time = (time.toDouble() * .5).round();
       }
       Timer(Duration(milliseconds: time), strikeLighting);
@@ -57,10 +71,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    audioPlayer_rain.setVolume(0.3);
+
     if (!inited) {
       inited = true;
+      end = false;
+      
+      // playLocal() async {
+      //   int result = await audioPlayer.play("main.mp3", isLocal: true);
+      // }
+      // playLocal();
+
+      // call this method when desired
+      player_music.play('sounds/main.mp3');
+      player_rain.loop('sounds/rain.wav');
       strikeLighting();
     }
+
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
@@ -104,6 +131,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     MaterialPageRoute(
                       builder: (context) => Battle(),
                     ));
+                audioPlayer_music.stop();
+                audioPlayer_rain.stop();
+                end = true;
               },
               child: const Text('Start a new game',
                   style: TextStyle(color: Color(0xFFDDC9B4), fontSize: 24)),
