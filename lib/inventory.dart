@@ -17,13 +17,20 @@ class _InventoryState extends State<Inventory> {
 
   @override
   Widget build(BuildContext context) {
-    var inventory = super.widget.creature.inventory;
+    var creature = super.widget.creature;
+    var inventory = creature.inventory;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your inventory'),
+        title: Text(
+            (creature == player ?
+            'Your inventory  -  HP: ${player.hp}'
+            :
+            '${creature.name}\'s inventory')
 
+        ),
       ),
+      backgroundColor: Colors.blueGrey,
       body: Column(children: [
         Flexible(
             child: FractionallySizedBox(
@@ -36,8 +43,11 @@ class _InventoryState extends State<Inventory> {
                         ? const Text(
                             "Select an item to see its stats here.",
                             textAlign: TextAlign.left,
+                            style: TextStyle(color: Color(0xFFE3E3E3))
                           )
-                        : selectedItem!.showStats()))),
+                        : selectedItem!.showStats(creature, () {
+                            setState(() {});
+                          })))),
         SizedBox(
           height: 200,
           child: ListView.separated(
@@ -52,9 +62,15 @@ class _InventoryState extends State<Inventory> {
                       style: const TextStyle(
                           color: Color(0xFFDDC9B4), fontSize: 24)),
                   style: ElevatedButton.styleFrom(
-                    primary: selectedItem != inventory[index]
+                    primary:
+                    super.widget.creature.hand == inventory[index] ?
+                    (selectedItem != inventory[index]
+                        ? const Color(0xFF345034)
+                        : const Color(0xFF7FA779))
+                        :
+                    (selectedItem != inventory[index]
                         ? const Color(0xFF26262D)
-                        : const Color(0xFF5D5D6D),
+                        : const Color(0xFF5D5D6D)),
                     side: const BorderSide(width: 4.0, color: Colors.black26),
                     padding: const EdgeInsets.all(24),
                   ),

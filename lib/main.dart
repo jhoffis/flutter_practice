@@ -37,8 +37,6 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-var audioPlayer_music = AudioPlayer();
-final player_music = AudioCache(fixedPlayer: audioPlayer_music);
 var audioPlayer_lightning = AudioPlayer();
 final player_lightning = AudioCache(fixedPlayer: audioPlayer_lightning);
 var audioPlayer_rain = AudioPlayer();
@@ -83,7 +81,6 @@ class _MyHomePageState extends State<MyHomePage> {
       // playLocal();
 
       // call this method when desired
-      player_music.play('sounds/main.mp3');
       player_rain.loop('sounds/rain.wav');
       strikeLighting();
     }
@@ -131,7 +128,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     MaterialPageRoute(
                       builder: (context) => Battle(),
                     ));
-                audioPlayer_music.stop();
                 audioPlayer_rain.stop();
                 end = true;
               },

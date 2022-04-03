@@ -1,18 +1,26 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
 import 'item.dart';
 
 class Creature {
+  Item hand = Nothing();
   final List<Item> inventory;
 
   int currentFrame = 0;
   final List<Image> frames;
 
-  Creature()
+  final int hpOg;
+  int hp;
+
+  final String name;
+
+  Creature(this.name, this.hp)
       : inventory = List.empty(growable: true),
-        frames = List.empty(growable: true);
+        frames = List.empty(growable: true),
+        hpOg = hp;
 
   Image getFrame(Function setState) {
     if (frames.isEmpty) {
@@ -27,20 +35,66 @@ class Creature {
 
     return frames[currentFrame];
   }
+
+  int attack(Creature enemy) {
+    int damage = 0;
+
+    if (hand is Weapon) {
+      var weapon = hand as Weapon;
+      var ran = Random();
+      if (ran.nextDouble() < weapon.chanceHit) {
+        damage += weapon.strength;
+        if (ran.nextDouble() < 0.2) {
+          damage += weapon.bonusStrength;
+        }
+        damage *= weapon.speed;
+      }
+    }
+
+    enemy.hp -= damage;
+
+    return damage;
+  }
 }
 
-final player = Creature();
 
-final testMonster = Creature();
+
+final player = Creature("Jack", 100);
+
+Creature createEnemy() {
+  var names = [
+    'Lowri',
+    'Molly',
+    'Ria',
+    'Irene (Rina)',
+    'Hazel',
+    'Yasmin',
+    'Maxwell',
+    'Conner',
+    'Jeremiah',
+    'Erik',
+    'Harley',
+    'Omar',
+    'Farhan',
+  ];
+  var ran = Random();
+  var enemy = Creature(names[ran.nextInt(names.length - 1)], 100);
+
+  for (var i = 0; i < ran.nextInt(3) + 1; i++) {
+    enemy.inventory.add(Weapon());
+  }
+
+  for (var item in enemy.inventory) {
+    if (item is Weapon) {
+      enemy.hand = item;
+      break;
+    }
+  }
+
+  return enemy;
+}
 
 void initCreatures() {
   player.inventory.add(Weapon());
   player.inventory.add(Weapon());
-
-  testMonster.frames.add(const Image(
-    image: AssetImage('assets/images/enemy_spider0.png'),
-  ));
-  testMonster.frames.add(const Image(
-    image: AssetImage('assets/images/enemy_spider1.png'),
-  ));
 }
