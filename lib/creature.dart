@@ -37,22 +37,8 @@ class Creature {
   }
 
   int attack(Creature enemy) {
-    int damage = 0;
-
-    if (hand is Weapon) {
-      var weapon = hand as Weapon;
-      var ran = Random();
-      if (ran.nextDouble() < weapon.chanceHit) {
-        damage += weapon.strength;
-        if (ran.nextDouble() < 0.2) {
-          damage += weapon.bonusStrength;
-        }
-        damage *= weapon.speed;
-      }
-    }
-
+    int damage = hand.attack();
     enemy.hp -= damage;
-
     return damage;
   }
 }
@@ -76,6 +62,13 @@ Creature createEnemy() {
     'Harley',
     'Omar',
     'Farhan',
+    'Robin',
+    'Gard',
+    'Thomas',
+    'Sunniva',
+    'Min Dång',
+    'Anas Bananas',
+    'Petter',
   ];
   var ran = Random();
   var enemy = Creature(names[ran.nextInt(names.length - 1)], 100);

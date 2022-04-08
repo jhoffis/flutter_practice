@@ -11,6 +11,8 @@ abstract class Item {
 
   String getDescription();
 
+  int attack();
+
   Widget showStats(Creature creature, Function setState) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Text(
@@ -20,14 +22,26 @@ abstract class Item {
           style: const TextStyle(color: Color(0xFFE3E3E3))),
       OutlinedButton(
         onPressed: () {
-          if (creature.hand != this) {
-            creature.hand = this;
+          if (creature != player) {
+            // Loot
+            player.inventory.add(this);
+            creature.inventory.remove(this);
           } else {
-            creature.hand = Nothing();
+            // Equip or not
+            if (creature.hand != this) {
+              creature.hand = this;
+            } else {
+              creature.hand = Nothing();
+            }
           }
           setState();
         },
-        child: Text(creature.hand == this ? "Unequip" : "Equip",
+        child: Text(
+            creature != player
+                ? "Loot"
+                : creature.hand == this
+                    ? "Unequip"
+                    : "Equip",
             style: const TextStyle(color: Color(0xFF292929), fontSize: 16)),
         style: ElevatedButton.styleFrom(
           primary: const Color(0xFF34eb77),
@@ -40,10 +54,11 @@ abstract class Item {
 
 class Weapon extends Item {
   int strength = 0, bonusStrength = 0, speed = 0;
+  int hp = 100;
   double chanceHit = 1;
   String adjective = "";
 
-  Weapon() {
+  Weapon({double dropAdjuster = 0}) {
     var ran = Random();
     var weaponType = ran.nextInt(3);
     switch (weaponType) {
@@ -68,31 +83,36 @@ class Weapon extends Item {
         break;
     }
 
-    var adj = ran.nextInt(5);
-    switch (adj) {
-      case 0:
-        adjective = "Boring";
-        strength -= 1;
-        break;
-      case 1:
-        adjective = "Normal";
-        break;
-      case 2:
-        adjective = "Fancy";
-        strength += 1;
-        break;
-      case 3:
-        adjective = "Unbalanced";
-        strength -= 1;
-        bonusStrength += 2;
-        chanceHit *= .8;
-        break;
-      case 4:
-        adjective = "Masterwork";
-        strength += 2;
-        bonusStrength += 2;
-        speed += 1;
-        break;
+    var adj = ran.nextDouble() + dropAdjuster;
+    if (adj > .99) {
+      adjective = "Godlike";
+      strength += 5;
+      bonusStrength += 5;
+      speed += 1;
+    } else if (adj > .97) {
+      adjective = "Masterwork";
+      strength += 2;
+      bonusStrength += 2;
+      speed += 1;
+    } else if (adj > .90) {
+      adjective = "Unbalanced";
+      strength -= 1;
+      bonusStrength += 2;
+      chanceHit *= .8;
+    } else if (adj > .85) {
+      adjective = "Imba";
+      strength -= 3;
+      bonusStrength += 5;
+      chanceHit *= .2;
+      speed = 5;
+    } else if (adj > .75) {
+      adjective = "Fancy";
+      strength += 1;
+    } else if (adj > .15) {
+      adjective = "Normal";
+    } else if (adj <= .15) {
+      adjective = "Boring";
+      strength -= 1;
     }
   }
 
@@ -107,6 +127,21 @@ class Weapon extends Item {
         "Chance to hit: $chanceHit\n"
         "Speed: $speed";
   }
+
+  @override
+  int attack() {
+    int damage = 0;
+    var ran = Random();
+    if (ran.nextDouble() < chanceHit) {
+      damage += strength;
+      if (ran.nextDouble() < 0.2) {
+        damage += bonusStrength;
+      }
+      damage *= speed;
+    }
+    hp -= 10;
+    return damage;
+  }
 }
 
 class Nothing extends Item {
@@ -118,5 +153,10 @@ class Nothing extends Item {
   @override
   String getName() {
     throw UnimplementedError();
+  }
+
+  @override
+  int attack() {
+    return 2;
   }
 }

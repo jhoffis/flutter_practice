@@ -5,10 +5,11 @@ import 'package:untitled3/inventory.dart';
 import 'package:image_sequence_animator/image_sequence_animator.dart';
 
 import 'creature.dart';
+import 'game_over.dart';
 import 'item.dart';
 
 class Battle extends StatefulWidget {
-  final Creature enemy = createEnemy();
+  Creature enemy = createEnemy();
 
   Battle({Key? key}) : super(key: key);
 
@@ -45,6 +46,55 @@ class _BattleState extends State<Battle> {
     amountSeen++;
     var enemy = super.widget.enemy;
 
+    var enemyAnimation = const ImageSequenceAnimator(
+      "assets/images", //folderName
+      "enemy_spider", //fileName
+      0, //suffixStart
+      1, //suffixCount
+      "png", //fileFormat
+      2, //frameCount
+      fps: 1,
+      isLooping: true,
+    );
+
+    if (amountSeen <= 1) {
+      return Container(
+        color: Colors.green,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                damage >= 0
+                    ? "-$damage  -  ${enemy.hp}/${enemy.hpOg}"
+                    : (amountSeen <= 1
+                        ? "Woah! A weird spider!"
+                        : "Darn spiders..."),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  decoration: TextDecoration.none,
+                  shadows: [Shadow(color: Colors.black, offset: Offset(5, 5))],
+                ),
+              ),
+              enemyAnimation,
+              BattleButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Inventory(player, killedEnemy: false),
+                        ));
+                    setState(() {});
+                  },
+                  text: 'Equip something!')
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       color: Colors.green,
       child: Center(
@@ -54,9 +104,7 @@ class _BattleState extends State<Battle> {
             Text(
               damage >= 0
                   ? "-$damage  -  ${enemy.hp}/${enemy.hpOg}"
-                  : (amountSeen <= 1
-                      ? "Woah! A weird spider!"
-                      : "Darn spiders..."),
+                  : "Darn spiders...",
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.white,
@@ -65,52 +113,58 @@ class _BattleState extends State<Battle> {
                 shadows: [Shadow(color: Colors.black, offset: Offset(5, 5))],
               ),
             ),
-            const ImageSequenceAnimator(
-              "assets/images", //folderName
-              "enemy_spider", //fileName
-              0, //suffixStart
-              1, //suffixCount
-              "png", //fileFormat
-              2, //frameCount
-              fps: 1,
-              isLooping: true,
-            ),
-            (player.hand is Nothing
-                ? BattleButton(
-                    onPressed: () {
-                      setState(() {
+            enemyAnimation,
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+              BattleButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Inventory(player, killedEnemy: false),
+                        ));
+                    setState(() {});
+                  },
+                  text: 'Inventory'),
+              BattleButton(
+                  enabled: canAttack,
+                  onPressed: () {
+                    setState(() {
+                      damage = player.attack(enemy);
+                      if (enemy.hp <= 0) {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => Inventory(player),
+                              builder: (context) => Inventory(enemy, killedEnemy: true),
                             ));
-                      });
-                    },
-                    text: 'Equip something!')
-                : BattleButton(
-                    enabled: canAttack,
-                    onPressed: () {
-                      setState(() {
-                        damage = player.attack(enemy);
-                        if (enemy.hp <= 0) {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Inventory(enemy),
-                              ));
-                        } else {
-                          canAttack = false;
-                          Timer(const Duration(milliseconds: 800), () {
-                            setState(() {
-                              canAttack = true;
-                              enemy.attack(player);
-                            });
+                        super.widget.enemy = createEnemy();
+                        player.hp = 100;
+                      } else {
+                        canAttack = false;
+                        Timer(const Duration(milliseconds: 800), () {
+                          setState(() {
+                            canAttack = true;
+                            enemy.attack(player);
+                            if (player.hp <= 0) {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const GameOver(),
+                                  ));
+                            }
                           });
-                        }
-                      });
-                    },
-                    text: 'Attack!')),
+                        });
+                      }
+                    });
+                  },
+                  text: 'Attack!')
+            ]),
             Text("HP: ${player.hp}/${player.hpOg}"),
+            Text(
+              "test",
+              style: TextStyle(fontSize: 28, color: Colors.white),
+            ),
           ],
         ),
       ),
