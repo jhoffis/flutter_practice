@@ -1,5 +1,6 @@
-
 import 'package:flutter/material.dart';
+
+import 'creature.dart';
 
 class GameOver extends StatelessWidget {
   const GameOver({Key? key}) : super(key: key);
@@ -12,10 +13,9 @@ class GameOver extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Column(
-      children: const [
-        Text("You died."),
-
+      home: Column(children: [
+        Text("You died.\n"
+            "But nice, you got ${player.kills} kills!"),
       ]),
     );
   }

@@ -103,7 +103,7 @@ class _BattleState extends State<Battle> {
           children: <Widget>[
             Text(
               damage >= 0
-                  ? "-$damage  -  ${enemy.hp}/${enemy.hpOg}"
+                  ? "Enemy's HP: ${enemy.hp}/${enemy.hpOg} -$damage"
                   : "Darn spiders...",
               textAlign: TextAlign.center,
               style: const TextStyle(
@@ -140,6 +140,7 @@ class _BattleState extends State<Battle> {
                             ));
                         super.widget.enemy = createEnemy();
                         player.hp = 100;
+                        player.kills += 1;
                       } else {
                         canAttack = false;
                         Timer(const Duration(milliseconds: 800), () {

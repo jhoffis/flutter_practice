@@ -14,6 +14,7 @@ class Creature {
 
   final int hpOg;
   int hp;
+  int kills = 0;
 
   final String name;
 
@@ -71,7 +72,7 @@ Creature createEnemy() {
     'Petter',
   ];
   var ran = Random();
-  var enemy = Creature(names[ran.nextInt(names.length - 1)], 100);
+  var enemy = Creature(names[ran.nextInt(names.length - 1)], 60 + (10*player.kills));
 
   for (var i = 0; i < ran.nextInt(3) + 1; i++) {
     enemy.inventory.add(Weapon());
