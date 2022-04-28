@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:developer';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:untitled3/inventory.dart';
@@ -7,6 +9,18 @@ import 'package:image_sequence_animator/image_sequence_animator.dart';
 import 'creature.dart';
 import 'game_over.dart';
 import 'item.dart';
+
+class BattleText extends Text {
+  const BattleText(String data)
+      : super(data,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              decoration: TextDecoration.none,
+              shadows: [Shadow(color: Colors.black, offset: Offset(5, 5))],
+            ));
+}
 
 class Battle extends StatefulWidget {
   Creature enemy = createEnemy();
@@ -38,13 +52,15 @@ class BattleButton extends OutlinedButton {
 
 class _BattleState extends State<Battle> {
   int amountSeen = 0;
-  int damage = -1;
+  int damage = 0;
   bool canAttack = true;
+  int timeWhenAvailableToStrike = 0;
 
   @override
   Widget build(BuildContext context) {
     amountSeen++;
     var enemy = super.widget.enemy;
+    var ran = Random();
 
     var enemyAnimation = const ImageSequenceAnimator(
       "assets/images", //folderName
@@ -57,115 +73,105 @@ class _BattleState extends State<Battle> {
       isLooping: true,
     );
 
-    if (amountSeen <= 1) {
-      return Container(
-        color: Colors.green,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                damage >= 0
-                    ? "-$damage  -  ${enemy.hp}/${enemy.hpOg}"
-                    : (amountSeen <= 1
-                        ? "Woah! A weird spider!"
-                        : "Darn spiders..."),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  decoration: TextDecoration.none,
-                  shadows: [Shadow(color: Colors.black, offset: Offset(5, 5))],
-                ),
-              ),
-              enemyAnimation,
-              BattleButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Inventory(player, killedEnemy: false),
-                        ));
-                    setState(() {});
-                  },
-                  text: 'Equip something!')
-            ],
-          ),
-        ),
-      );
-    }
+    var inventoryBtn = BattleButton(
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Inventory(player, setState, killedEnemy: false),
+              ));
+          setState(() {});
+        },
+        text: 'Inventory');
 
     return Container(
-      color: Colors.green,
+      color: Color.fromARGB(255, 20, (200 / (depth+1)).round(), 42),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              damage >= 0
-                  ? "Enemy's HP: ${enemy.hp}/${enemy.hpOg} -$damage"
-                  : "Darn spiders...",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                decoration: TextDecoration.none,
-                shadows: [Shadow(color: Colors.black, offset: Offset(5, 5))],
-              ),
-            ),
+            BattleText(player.hand is! Nothing
+                ? "Depth:$depth\n"
+                    "Enemy's HP: ${enemy.hp}/${enemy.hpOg} -$damage"
+                : (amountSeen <= 1
+                    ? "Woah! A weird spider!"
+                    : "Darn spiders...")),
             enemyAnimation,
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-              BattleButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Inventory(player, killedEnemy: false),
-                        ));
-                    setState(() {});
-                  },
-                  text: 'Inventory'),
-              BattleButton(
-                  enabled: canAttack,
-                  onPressed: () {
-                    setState(() {
-                      damage = player.attack(enemy);
-                      if (enemy.hp <= 0) {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Inventory(enemy, killedEnemy: true),
-                            ));
-                        super.widget.enemy = createEnemy();
-                        player.hp = 100;
-                        player.kills += 1;
-                      } else {
-                        canAttack = false;
-                        Timer(const Duration(milliseconds: 800), () {
-                          setState(() {
-                            canAttack = true;
-                            enemy.attack(player);
-                            if (player.hp <= 0) {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const GameOver(),
-                                  ));
-                            }
-                          });
-                        });
-                      }
-                    });
-                  },
-                  text: 'Attack!')
-            ]),
-            Text("HP: ${player.hp}/${player.hpOg}"),
-            Text(
-              "test",
-              style: TextStyle(fontSize: 28, color: Colors.white),
-            ),
+            player.hand is Nothing
+                ? inventoryBtn
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                        inventoryBtn,
+                        BattleButton(
+                            enabled: canAttack,
+                            onPressed: () {
+                              setState(() {
+                                /*
+                                Attack
+                                 */
+                                damage = player.attack(enemy);
+                                if (enemy.hp <= 0) {
+                                  /*
+                                  Killed enemy
+                                   */
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            Inventory(enemy, setState, killedEnemy: true),
+                                      ));
+                                  /*
+                                  Reset after fight
+                                   */
+                                  super.widget.enemy = createEnemy();
+                                  player.hp = 100;
+                                  if (ran.nextDouble() + player.kills * .05 > .75) {
+                                    depth++;
+                                    player.kills = 0;
+                                  } else {
+                                    player.kills += 1;
+                                    player.totalKills += 1;
+                                  }
+                                } else {
+                                  /*
+                                  Wait until next attack
+                                   */
+                                  canAttack = false;
+                                  var waitTime = ran.nextInt(400) + 600;
+                                  timeWhenAvailableToStrike =
+                                      DateTime.now().millisecond + waitTime;
+                                  Timer(Duration(milliseconds: waitTime), () {
+                                    setState(() {
+                                      canAttack = true;
+                                      enemy.attack(player);
+                                      if (player.hp <= 0) {
+                                        /*
+                                        Died
+                                         */
+                                        Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const GameOver(),
+                                            ));
+                                      }
+                                    });
+                                  });
+                                }
+                              });
+                            },
+                            text: 'Attack!')
+                      ]),
+            BattleText("My HP: ${player.hp}/${player.hpOg}"),
+            // BattleButton(onPressed: () {
+            //   Navigator.pushReplacement(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (context) =>
+            //         const GameOver(),
+            //       ));
+            // }, text: "Kill yourself")
           ],
         ),
       ),

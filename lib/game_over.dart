@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'battle.dart';
 import 'creature.dart';
 
 class GameOver extends StatelessWidget {
@@ -9,14 +10,18 @@ class GameOver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+      home: Container(
+        decoration: const BoxDecoration(color: Colors.white10),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              BattleText("${player.name} died.\n"
+                  "But nice, you got ${player.totalKills} kills!"),
+              Image.asset('assets/images/died.png',
+                  filterQuality: FilterQuality.none, fit: BoxFit.fill),
+            ]),
       ),
-      home: Column(children: [
-        Text("You died.\n"
-            "But nice, you got ${player.kills} kills!"),
-      ]),
     );
   }
 }

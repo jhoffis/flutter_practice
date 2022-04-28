@@ -15,6 +15,7 @@ class Creature {
   final int hpOg;
   int hp;
   int kills = 0;
+  int totalKills = 0;
 
   final String name;
 
@@ -27,8 +28,7 @@ class Creature {
     if (frames.isEmpty) {
       throw Exception("No frames init for creature");
     }
-    Timer(const Duration(milliseconds: 750),()
-    {
+    Timer(const Duration(milliseconds: 750), () {
       setState(() {
         currentFrame = (currentFrame + 1) % frames.length;
       });
@@ -44,9 +44,8 @@ class Creature {
   }
 }
 
-
-
 final player = Creature("Jack", 100);
+int depth = 0;
 
 Creature createEnemy() {
   var names = [
@@ -72,10 +71,12 @@ Creature createEnemy() {
     'Petter',
   ];
   var ran = Random();
-  var enemy = Creature(names[ran.nextInt(names.length - 1)], 60 + (10*player.kills));
+  var enemy = Creature(names[ran.nextInt(names.length - 1)],
+      20 + (10.0 * ran.nextDouble()).round() + 10 * depth);
 
   for (var i = 0; i < ran.nextInt(3) + 1; i++) {
-    enemy.inventory.add(Weapon());
+    enemy.inventory.add(
+        Weapon(dropAdjuster: depth * .05 - .3, depth: depth)); // +5x% - 30%
   }
 
   for (var item in enemy.inventory) {
