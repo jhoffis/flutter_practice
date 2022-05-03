@@ -13,7 +13,7 @@ class Walking extends StatelessWidget {
   Widget build(BuildContext context) {
 
     var ran = Random();
-    Timer(Duration(seconds: ran.nextInt(3) + 1), () {
+    Timer(Duration(seconds: ran.nextInt(2) + 1), () {
       Navigator.pushReplacement(context,
         MaterialPageRoute(
           builder: (BuildContext context) => Battle(),
@@ -21,14 +21,10 @@ class Walking extends StatelessWidget {
       );
     });
 
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return const MaterialApp(
+      home: Center(child:
+        BattleText("Walking..."),
       ),
-      home: Column(children: const [
-        Text("Walking..."),
-      ]),
     );
   }
 }

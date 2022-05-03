@@ -10,32 +10,18 @@ class Creature {
   final List<Item> inventory;
 
   int currentFrame = 0;
-  final List<Image> frames;
 
   final int hpOg;
   int hp;
   int kills = 0;
   int totalKills = 0;
+  int carryCapacity = 7;
 
   final String name;
 
   Creature(this.name, this.hp)
       : inventory = List.empty(growable: true),
-        frames = List.empty(growable: true),
         hpOg = hp;
-
-  Image getFrame(Function setState) {
-    if (frames.isEmpty) {
-      throw Exception("No frames init for creature");
-    }
-    Timer(const Duration(milliseconds: 750), () {
-      setState(() {
-        currentFrame = (currentFrame + 1) % frames.length;
-      });
-    });
-
-    return frames[currentFrame];
-  }
 
   int attack(Creature enemy) {
     int damage = hand.attack();
@@ -89,7 +75,6 @@ Creature createEnemy() {
   return enemy;
 }
 
-void initCreatures() {
-  player.inventory.add(Weapon());
-  player.inventory.add(Weapon());
+void initPlayer() {
+  player.inventory.add(Weapon(dropAdjuster: -0.5));
 }

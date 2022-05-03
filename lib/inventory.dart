@@ -22,6 +22,7 @@ class _InventoryState extends State<Inventory> {
 
   @override
   Widget build(BuildContext context) {
+    const textColor = Color(0xFFDDC9B4);
     var creature = super.widget.creature;
     var inventory = creature.inventory;
 
@@ -29,11 +30,12 @@ class _InventoryState extends State<Inventory> {
     Color bc;
 
     if (creature == player) {
-      title = 'Your inventory  -  HP: ${player.hp}';
-      bc = Colors.blueGrey;
+      title =
+          'Your inventory has ${inventory.length}/${creature.carryCapacity} items';
+      bc = const Color.fromARGB(255, 44, 66, 81);
     } else {
       title = '${creature.name}\'s inventory';
-      bc = Colors.deepOrange;
+      bc = const Color.fromARGB(255, 140, 40, 50);
     }
 
     return WillPopScope(
@@ -52,86 +54,93 @@ class _InventoryState extends State<Inventory> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(title),
+          title: Text(
+            title,
+            style: const TextStyle(color: textColor),
+          ),
+          backgroundColor: bc,
         ),
         backgroundColor: bc,
         body: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              showStats(selectedItem, creature, (removeSelected) {
+                setState(() {
+                  if (removeSelected) {
+                    selectedItem = null;
+                  }
+                });
+              }, textColor),
               Expanded(
-                flex: 1,
-                child: FractionallySizedBox(
+                flex: 6,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: FractionallySizedBox(
                     // heightFactor: 1,
                     widthFactor: .9,
-                    child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: DecoratedBox(
-                            decoration: const BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(20)),
-                              color: Colors.black12,
+                    child: ListView.separated(
+                        // shrinkWrap: true,
+                        // padding: const EdgeInsets.all(20.0),
+                        itemBuilder: (BuildContext context, int index) {
+                          var btn = OutlinedButton(
+                            onPressed: () {
+                              setState(() {
+                                selectedItem = inventory[index];
+                              });
+                            },
+                            child: Text(inventory[index].getName(),
+                                style: const TextStyle(
+                                    color: textColor, fontSize: 24)),
+                            style: ElevatedButton.styleFrom(
+                              primary:
+                                  super.widget.creature.hand == inventory[index]
+                                      ? (selectedItem != inventory[index]
+                                          ? const Color(0xFF345034)
+                                          : const Color(0xFF7FA779))
+                                      : (selectedItem != inventory[index]
+                                          ? const Color(0xFF26262D)
+                                          : const Color(0xFF5D5D6D)),
+                              side: const BorderSide(
+                                  width: 4.0, color: Colors.black26),
+                              padding: const EdgeInsets.all(24),
                             ),
-                            child: selectedItem == null
-                                ? const Text(
-                                    "Select an item to see its stats here.",
-                                    textAlign: TextAlign.left,
-                                    style: TextStyle(color: Color(0xFFE3E3E3)))
-                                : selectedItem!.showStats(creature, () {
-                                    setState(() {});
-                                  })))),
-              ),
-              Expanded(
-                flex: 4,
-                child: ListView.separated(
-                    // shrinkWrap: true,
-                    // padding: const EdgeInsets.all(20.0),
-                    itemBuilder: (BuildContext context, int index) {
-                      return Dismissible(
-                        // Each Dismissible must contain a Key. Keys allow Flutter to
-                        // uniquely identify widgets.
-                        key: Key("$index"),
-                        onDismissed: (direction) {
-                          setState(() {
-                            bool isInHand = inventory[index] == player.hand;
-                            if (isInHand && inventory.length > 1) {
-                              if (index != 0) {
-                                player.hand = inventory.first;
-                              } else {
-                                player.hand = inventory.last;
-                              }
-                              inventory.removeAt(index);
-                            }
-                          });
+                          );
+
+                          if (creature == player && inventory.length > 1) {
+                            // Make item dismissible
+                            return Dismissible(
+                                // Each Dismissible must contain a Key. Keys allow Flutter to
+                                // uniquely identify widgets.
+                                key: UniqueKey(),
+                                confirmDismiss: (direction) {
+                                  return Future.value(true);
+                                },
+                                onDismissed: (direction) {
+                                  setState(() {
+                                    if (player.hand == inventory[index]) {
+                                      if (index != 0) {
+                                        player.hand = inventory.first;
+                                      } else {
+                                        player.hand = inventory.last;
+                                      }
+                                    }
+                                  });
+                                  if (inventory[index] is Weapon) {
+                                    player.hp +=
+                                        (inventory[index] as Weapon).getHp();
+                                  }
+                                  inventory.removeAt(index);
+                                },
+                                // background: Container(color: Colors.red),
+                                child: btn);
+                          }
+                          return btn;
                         },
-                        background: Container(color: Colors.red),
-                        child: OutlinedButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedItem = inventory[index];
-                            });
-                          },
-                          child: Text(inventory[index].getName(),
-                              style: const TextStyle(
-                                  color: Color(0xFFDDC9B4), fontSize: 24)),
-                          style: ElevatedButton.styleFrom(
-                            primary:
-                                super.widget.creature.hand == inventory[index]
-                                    ? (selectedItem != inventory[index]
-                                        ? const Color(0xFF345034)
-                                        : const Color(0xFF7FA779))
-                                    : (selectedItem != inventory[index]
-                                        ? const Color(0xFF26262D)
-                                        : const Color(0xFF5D5D6D)),
-                            side: const BorderSide(
-                                width: 4.0, color: Colors.black26),
-                            padding: const EdgeInsets.all(24),
-                          ),
-                        ),
-                      );
-                    },
-                    separatorBuilder: (BuildContext context, int index) =>
-                        const Divider(),
-                    itemCount: inventory.length),
+                        separatorBuilder: (BuildContext context, int index) =>
+                            const Divider(),
+                        itemCount: inventory.length),
+                  ),
+                ),
               ),
             ]),
       ),

@@ -8,7 +8,7 @@ import 'package:untitled3/creature.dart';
 import 'battle.dart';
 
 void main() {
-  initCreatures();
+  initPlayer();
   runApp(const MyApp());
 }
 

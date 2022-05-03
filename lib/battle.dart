@@ -22,14 +22,6 @@ class BattleText extends Text {
             ));
 }
 
-class Battle extends StatefulWidget {
-  Creature enemy = createEnemy();
-
-  Battle({Key? key}) : super(key: key);
-
-  @override
-  State<Battle> createState() => _BattleState();
-}
 
 class BattleButton extends OutlinedButton {
   BattleButton(
@@ -48,6 +40,15 @@ class BattleButton extends OutlinedButton {
               side: const BorderSide(width: 4.0, color: Colors.black26),
               padding: const EdgeInsets.all(24),
             ));
+}
+
+class Battle extends StatefulWidget {
+  Creature enemy = createEnemy();
+
+  Battle({Key? key}) : super(key: key);
+
+  @override
+  State<Battle> createState() => _BattleState();
 }
 
 class _BattleState extends State<Battle> {
@@ -85,14 +86,14 @@ class _BattleState extends State<Battle> {
         text: 'Inventory');
 
     return Container(
-      color: Color.fromARGB(255, 20, (200 / (depth+1)).round(), 42),
+      color: Color.fromARGB(255, 20, (188 / (.5*depth+1)).round(), 62),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             BattleText(player.hand is! Nothing
                 ? "Depth:$depth\n"
-                    "Enemy's HP: ${enemy.hp}/${enemy.hpOg} -$damage"
+                    "Enemy's ❤: ${enemy.hp}/${enemy.hpOg} -$damage"
                 : (amountSeen <= 1
                     ? "Woah! A weird spider!"
                     : "Darn spiders...")),
@@ -125,7 +126,7 @@ class _BattleState extends State<Battle> {
                                   Reset after fight
                                    */
                                   super.widget.enemy = createEnemy();
-                                  player.hp = 100;
+                                  player.hp = player.hpOg;
                                   if (ran.nextDouble() + player.kills * .05 > .75) {
                                     depth++;
                                     player.kills = 0;
@@ -163,7 +164,7 @@ class _BattleState extends State<Battle> {
                             },
                             text: 'Attack!')
                       ]),
-            BattleText("My HP: ${player.hp}/${player.hpOg}"),
+            BattleText("Jack's ❤: ${player.hp}/${player.hpOg}"),
             // BattleButton(onPressed: () {
             //   Navigator.pushReplacement(
             //       context,

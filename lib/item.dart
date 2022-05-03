@@ -14,7 +14,76 @@ class ItemButton extends OutlinedButton {
             style: ElevatedButton.styleFrom(
               primary: const Color(0xFF34eb77),
               padding: const EdgeInsets.all(8),
+              // minimumSize: const Size.fromHeight(40),
             ));
+}
+
+Expanded showStats(Item? item, Creature creature, final Function setState,
+    final Color textColor) {
+  Widget content;
+  void Function()? onPressed;
+
+  if (item == null) {
+    content = Text("Select an item to see its stats here.",
+        textAlign: TextAlign.left, style: TextStyle(color: textColor));
+  } else {
+    var description = Text(
+        "\t\"${item.getName()}\"\n"
+        "${item.getDescription()}",
+        textAlign: TextAlign.left,
+        style: TextStyle(color: textColor, fontSize: 16));
+
+    String text;
+    if (creature != player) {
+      onPressed = () {
+        // Loot
+        if (player.inventory.length < player.carryCapacity) {
+          player.inventory.add(item);
+          creature.inventory.remove(item);
+          setState(true);
+        }
+      };
+      text = "Loot";
+    } else {
+      onPressed = () {
+        // Equip or not
+        if (creature.hand != item) {
+          creature.hand = item;
+        } else {
+          creature.hand = Nothing();
+        }
+        setState(false);
+      };
+      text = creature.hand == item ? "Unequip" : "Equip";
+    }
+
+    content = Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      description,
+      ItemButton(onPressed: onPressed, text: text),
+    ]);
+  }
+
+  const borderRadius = BorderRadius.all(Radius.circular(20));
+
+  return Expanded(
+      flex: 2,
+      child: FractionallySizedBox(
+          heightFactor: .9,
+          widthFactor: .9,
+          child: Align(
+              alignment: Alignment.centerLeft,
+              child: DecoratedBox(
+                  decoration: const BoxDecoration(
+                    borderRadius: borderRadius,
+                    color: Colors.black12,
+                  ),
+                  child: InkWell(
+                      borderRadius: borderRadius,
+                      onTap: onPressed,
+                      // TODO denne burde ha akkurat samme som onPressed, bare at InkWell skal ikke være med om det er ingen item...
+                      child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: content))))));
 }
 
 abstract class Item {
@@ -25,49 +94,6 @@ abstract class Item {
   String getDescription();
 
   int attack();
-
-  Widget showStats(Creature creature, Function setState) {
-    var description = Text(
-        "${getName()}\n"
-        "${getDescription()}\n",
-        textAlign: TextAlign.left,
-        style: const TextStyle(color: Color(0xFFE3E3E3)));
-
-    List<Widget> row;
-    if (creature != player) {
-      row = [
-        description,
-        ItemButton(
-            onPressed: () {
-              // Loot
-              if (player.inventory.length < 6) {
-                player.inventory.add(this);
-                creature.inventory.remove(this);
-              }
-              setState();
-            },
-            text: "Loot"),
-      ];
-    } else {
-      row = [
-        description,
-        ItemButton(
-            onPressed: () {
-              // Equip or not
-              if (creature.hand != this) {
-                creature.hand = this;
-              } else {
-                creature.hand = Nothing();
-              }
-              setState();
-            },
-            text: creature.hand == this ? "Unequip" : "Equip"),
-      ];
-    }
-
-    return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, children: row);
-  }
 }
 
 enum Elemental {
@@ -77,7 +103,7 @@ enum Elemental {
 
 class Weapon extends Item {
   int strength = 0, bonusStrength = 0, speed = 0, depth = 0;
-  int hp = 100;
+  int hp = 0;
   double chanceHit = 1;
   String adjective = "";
   Elemental elemental = Elemental.none;
@@ -90,20 +116,22 @@ class Weapon extends Item {
         name = "Sword";
         strength = 3;
         bonusStrength = 1;
+        chanceHit = .9;
         speed = 5;
         break;
       case 1:
         name = "Hammer";
         strength = 3;
-        bonusStrength = 4;
-        speed = 2;
-        chanceHit = .5;
+        bonusStrength = 6;
+        speed = 3;
+        chanceHit = .75;
         break;
       case 2:
         name = "Axe";
         strength = 5;
-        bonusStrength = 2;
-        speed = 2;
+        bonusStrength = 3;
+        speed = 3;
+        chanceHit = .85;
         break;
     }
 
@@ -113,40 +141,52 @@ class Weapon extends Item {
       strength += 5;
       bonusStrength += 5;
       speed += 1;
+      hp = 100;
     } else if (adj > .97) {
       adjective = "Masterwork";
       strength += 2;
       bonusStrength += 2;
       speed += 1;
+      hp = 75;
     } else if (adj > .90) {
       adjective = "Unbalanced";
       strength -= 1;
       bonusStrength += 2;
       chanceHit *= .8;
+      hp = 20;
     } else if (adj > .85) {
       adjective = "Imba";
       strength -= 3;
       bonusStrength += 5;
       chanceHit *= .2;
       speed = 5;
+      hp = 20;
     } else if (adj > .75) {
       adjective = "Fancy";
       strength += 1;
+      hp = 30;
     } else if (adj > .4) {
       adjective = "Normal";
+      hp = 20;
     } else if (adj > .15) {
       adjective = "Boring";
       strength -= 1;
+      hp = 15;
     } else if (adj <= .15) {
       adjective = "Grumpy";
       strength -= 2;
       speed -= 1;
+      hp = 10;
     }
 
     if (ran.nextDouble() > .90) {
       elemental = Elemental.flame;
       adjective = "Flamey " + adjective;
     }
+  }
+
+  int getHp() {
+    return hp;
   }
 
   @override
@@ -156,9 +196,11 @@ class Weapon extends Item {
 
   @override
   String getDescription() {
-    return "Strength: $strength+$bonusStrength+$depth\n"
-        "Chance to hit: $chanceHit\n"
-        "Speed: $speed";
+    return """
+Strength: $strength+$bonusStrength+$depth
+Chance to hit: ${(chanceHit * 100).toInt()}%
+Speed: $speed
+Recovers $hp ❤ when discarded""";
   }
 
   @override
@@ -175,7 +217,10 @@ class Weapon extends Item {
         damage *= ran.nextDouble().round() + 1;
       }
     }
-    hp -= 10;
+    hp -= 2;
+    if (hp < 0) {
+      hp = 0;
+    }
     return damage;
   }
 }
